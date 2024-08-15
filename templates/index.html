@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='general.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='index.css') }}">
+</head>
+<body>
+    <div class="header">
+        <a href="/">myTube</a>
+    </div>
+    <div class="videos">
+        {% for video in videos %}
+        <div class="video">
+            <a href="/{{ video.id|string }}">
+                <img src="{{ url_for('static', filename='previews/' + video.id|string + '.png') }}" alt="">
+                <h2 class="name">{{ video.name }}</h2>
+                <p class="author_name">{{ video.author_name }}</p>
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+</body>
+</html>

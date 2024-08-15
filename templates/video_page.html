@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>myTube</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='video_page.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='general.css') }}">
+</head>
+<body>
+    <div class="header">
+        <a href="/">myTube</a>
+    </div>
+    <div class="video_block">
+        <video controls>
+            <source src="{{ url_for('static', filename='videos/' + video.id|string + '.mp4') }}" type="video/mp4">
+        </video>
+
+        <div class="actions">
+            <div class="like">
+                <button class="like_btn" id="{{ video.id }}">
+                    <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#5f6368"><path d="M840-640q32 0 56 24t24 56v80q0 7-2 15t-4 15L794-168q-9 20-30 34t-44 14H280v-520l240-238q15-15 35.5-17.5T595-888q19 10 28 28t4 37l-45 183h258Zm-480 34v406h360l120-280v-80H480l54-220-174 174ZM160-120q-33 0-56.5-23.5T80-200v-360q0-33 23.5-56.5T160-640h120v80H160v360h120v80H160Zm200-80v-406 406Z"/></svg>
+                    <p>{{ video.likes }}</p>
+                </button>
+            </div>
+            <div class="dislike">
+                <button class="dislike_btn" id="{{ video.id }}">
+                    <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#5f6368"><path d="M120-320q-32 0-56-24t-24-56v-80q0-7 2-15t4-15l120-282q9-20 30-34t44-14h440v520L440-82q-15 15-35.5 17.5T365-72q-19-10-28-28t-4-37l45-183H120Zm480-34v-406H240L120-480v80h360l-54 220 174-174Zm200-486q33 0 56.5 23.5T880-760v360q0 33-23.5 56.5T800-320H680v-80h120v-360H680v-80h120Zm-200 80v406-406Z"/></svg>
+                    <p>{{ video.dislikes }}</p>
+                </button>
+            </div>
+        </div>
+
+        <h1 class="name">{{ video.name }}</h1>
+        <p class="desc">{{ video.desc }}</p>
+        <p class="author_name">{{ video.author_name }}</p>
+    </div>
+
+    <script>
+        like_btn = document.querySelector('.like_btn')
+        like_p = document.querySelector('.like_btn p')
+        like_btn.onclick = async function(event) {
+            await fetch('/' + like_btn.id.toString() + '/like', {
+                method: 'POST'
+            })
+            like_p.innerText = Number(like_p.innerText) + 1
+        }
+
+        dislike_btn = document.querySelector('.dislike_btn')
+        dislike_p = document.querySelector('.dislike_btn p')
+        dislike_btn.onclick = async function(event) {
+            console.log('/' + dislike_btn.id.toString() + '/dislike');
+            
+            await fetch('/' + dislike_btn.id.toString() + '/dislike', {
+                method: 'POST'
+            })
+            dislike_p.innerText = Number(dislike_p.innerText) + 1
+        }
+    </script>
+</body>
+</html>
