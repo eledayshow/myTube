@@ -1,0 +1,56 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    font-family: "Roboto", sans-serif;
+}
+
+.video_block {
+    padding: 7vh 20vw 0;
+}
+
+video {
+    width: 60vw;
+    border-radius: 1vh;
+}
+
+.actions {
+    display: flex;
+    margin-top: 2vh;
+}
+
+.like_btn, .dislike_btn {
+    background-color: transparent;
+    /* border: .1vh solid gray; */
+    border: none;
+    padding: .75vh .9vh;
+    font-size: 1.3em;
+    margin-right: .5vh;
+    border-radius: 2vh;
+    display: flex;
+    background-color: #eeeeee;
+    cursor: pointer;
+    transition: .5s;
+}
+
+.like_btn:hover, .dislike_btn:hover {
+    background-color: #d3d3d3;
+}
+
+.like_btn p, .dislike_btn p {
+    margin-left: .5vh;
+}
+
+.name {
+    margin-top: 1vh;
+}
+
+.desc {
+    margin-top: .7vh;
+}
+
+.author_name {
+    margin-top: 1vh;
+    color: #5e5e5e;
+}
