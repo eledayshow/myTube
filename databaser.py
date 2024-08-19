@@ -24,7 +24,6 @@ class Databaser:
     def get_video(self, video_id):
         self.cursor.execute('SELECT * FROM videos WHERE id = ?', (video_id,))
         r = self.cursor.fetchone()
-        print(r)
 
         if not r:
             return
