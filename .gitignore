@@ -1,3 +1,6 @@
 __pycache__
 venv
 *.db
+*.db-journal
+static/videos
+static/previews

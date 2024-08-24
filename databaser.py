@@ -1,4 +1,3 @@
-
 import sqlite3
 
 
@@ -9,15 +8,19 @@ class Databaser:
         self.connection.row_factory = sqlite3.Row
         self.cursor = self.connection.cursor()
         self.cursor.execute('''CREATE TABLE IF NOT EXISTS videos (
-                            id INTEGER PRIMARY KEY AUTOINCREMENT, 
+                            id INTEGER PRIMARY KEY AUTOINCREMENT,
                             name TEXT,
                             desc TEXT,
                             likes INT,
                             dislikes INT,
                             author_name TEXT)''')
+        self.cursor.execute('''CREATE TABLE IF NOT EXISTS users (
+                            id INTEGER PRIMARY KEY AUTOINCREMENT,
+                            name TEXT,
+                            password_hash TEXT)''')
 
     def add_video(self, name, desc, author_name):
-        self.cursor.execute('''INSERT INTO videos (name, desc, likes, dislikes, author_name) 
+        self.cursor.execute('''INSERT INTO videos (name, desc, likes, dislikes, author_name)
         VALUES (?, ?, 0, 0, ?)''', (name, desc, author_name))
         self.connection.commit()
 
@@ -57,6 +60,20 @@ class Databaser:
         videos.sort(key=lambda x: x['likes'] - x['dislikes'], reverse=True)
 
         return videos
+
+    def add_user(self, name, password_hash):
+        self.cursor.execute('''INSERT INTO users (name, password_hash)
+        VALUES (?, ?)''', (name, password_hash))
+        self.connection.commit()
+
+    def get_user_by_name(self, name):
+        self.cursor.execute('SELECT * FROM users WHERE name = ?', (name,))
+        r = self.cursor.fetchone()
+
+        if not r:
+            return None
+
+        return dict(r)
 
 
 if __name__ == '__main__':
