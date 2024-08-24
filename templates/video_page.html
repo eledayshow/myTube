@@ -3,14 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>myTube</title>
+    <title>{{ video.name }}</title>
 
     <link rel="stylesheet" href="{{ url_for('static', filename='video_page.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='general.css') }}">
 </head>
 <body>
-    <div class="header">
-        <a href="/">myTube</a>
+    <div class="navbar">
+        <div class="header">
+            <a href="/">myTube</a>
+        </div>
+        <div id="authpage" class="navlink">
+            <a href="/auth">авторизация</a>
+        </div>
     </div>
     <div class="video_block">
         <video controls>
@@ -37,24 +42,31 @@
         <p class="author_name">{{ video.author_name }}</p>
     </div>
 
+    <script src="/static/general.js"></script>
     <script>
         like_btn = document.querySelector('.like_btn')
         like_p = document.querySelector('.like_btn p')
         like_btn.onclick = async function(event) {
-            await fetch('/' + like_btn.id.toString() + '/like', {
+            const resp = await fetch('/' + like_btn.id.toString() + '/like', {
                 method: 'POST'
             })
+            if (resp.status === 401) {
+                alert("Unauthorized")
+                return
+            }
             like_p.innerText = Number(like_p.innerText) + 1
         }
 
         dislike_btn = document.querySelector('.dislike_btn')
         dislike_p = document.querySelector('.dislike_btn p')
         dislike_btn.onclick = async function(event) {
-            console.log('/' + dislike_btn.id.toString() + '/dislike');
-            
-            await fetch('/' + dislike_btn.id.toString() + '/dislike', {
+            const resp = await fetch('/' + dislike_btn.id.toString() + '/dislike', {
                 method: 'POST'
             })
+            if (resp.status === 401) {
+                alert("Unauthorized")
+                return
+            }
             dislike_p.innerText = Number(dislike_p.innerText) + 1
         }
     </script>

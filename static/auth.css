@@ -1,0 +1,7 @@
+.auth-form {
+    background-color: cyan;
+}
+
+.auth-form * {
+    margin: 10px;
+}

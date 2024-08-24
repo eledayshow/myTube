@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>авторизация</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='general.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='auth.css') }}">
+</head>
+<body>
+    <div class="navbar">
+        <div class="header">
+            <a href="/">myTube</a>
+        </div>
+        <div id="authpage" class="navlink">
+            <a href="/auth">авторизация</a>
+        </div>
+    </div>
+    <div class="center">
+        <div class="auth-form">
+            <div style="display: grid">
+                <input placeholder="имя" id="name"></input>
+                <input placeholder="пароль" id="password"></input>
+            </div>
+            <div>
+                <button id="auth">войти</button>
+                <button id="register">зарегистрироваться</button>
+            </dvi>
+        </div>
+    </div>
+    <script src="/static/general.js"></script>
+    <script>
+        const name = document.getElementById("name");
+        const password = document.getElementById("password");
+        const auth = document.getElementById("auth");
+        const register = document.getElementById("register");
+
+        auth.onclick = () => {
+            fetch('/auth/auth', {
+                method: 'POST',
+                body: {name: name, password: password},
+            }).then(resp => {
+                if (!resp.ok) {
+                    alert("ERROR")
+                    return
+                }
+                resp.text().then(text => {
+                    document.cookie = "token=" + encodeURIComponent(text)
+                    location.reload()
+                })
+            })
+        }
+
+        register.onclick = () => {
+            fetch('/auth/register', {
+                method: 'POST',
+                body: {name: name, password: password},
+            }).then(resp => {
+                if (!resp.ok) {
+                    alert("ERROR")
+                    return
+                }
+                alert("Пользователь создан!")
+            })
+        }
+    </script>
+</body>

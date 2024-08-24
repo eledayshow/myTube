@@ -1,15 +1,20 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>myTube</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='general.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='index.css') }}">
 </head>
 <body>
-    <div class="header">
-        <a href="/">myTube</a>
+    <div class="navbar">
+        <div class="header">
+            <a href="/">myTube</a>
+        </div>
+        <div id="authpage" class="navlink">
+            <a href="/auth">авторизация</a>
+        </div>
     </div>
     <div class="videos">
         {% for video in videos %}
@@ -22,5 +27,6 @@
         </div>
         {% endfor %}
     </div>
+    <script src="/static/general.js"></script>
 </body>
 </html>
