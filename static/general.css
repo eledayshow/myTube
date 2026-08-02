@@ -1,18 +1,113 @@
 @import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap');
 
+:root {
+    --bg-color: #ffffff;
+    --text-color: #000000;
+    --header-bg: #ffffff;
+    --border-color: #e0e0e0;
+    --card-bg: #f9f9f9;
+    --input-bg: #ffffff;
+    --button-hover: #e0e0e0;
+}
+
+[data-theme="dark"] {
+    --bg-color: #181818;
+    --text-color: #ffffff;
+    --header-bg: #202020;
+    --border-color: #3a3a3a;
+    --card-bg: #282828;
+    --input-bg: #121212;
+    --button-hover: #3a3a3a;
+}
+
 * {
     margin: 0;
     padding: 0;
     font-family: "Roboto", sans-serif;
 }
 
-.header {
-    padding: 3vh;
-    padding-bottom: 0;
+body {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    transition: background-color 0.3s, color 0.3s;
 }
 
-.header a {
+.header {
+    padding: 2vh 3vh;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border-color);
+    background-color: var(--header-bg);
+}
+
+.header > a {
     color: red;
     text-decoration: none;
-    font-weight: 400;
+    font-weight: 500;
+    font-size: 1.5em;
+}
+
+.header-right {
+    display: flex;
+    gap: 1.5vh;
+    align-items: center;
+}
+
+.user-info {
+    color: var(--text-color);
+    font-weight: 500;
+    font-size: 0.95em;
+    text-decoration: none;
+}
+
+.user-info:hover {
+    text-decoration: underline;
+}
+
+.theme-toggle {
+    background: none;
+    border: none;
+    font-size: 1.5em;
+    cursor: pointer;
+    padding: 0.5vh;
+}
+
+.btn-logout, .btn-login, .btn-register, .upload-btn {
+    text-decoration: none;
+    padding: 0.8vh 1.5vh;
+    border-radius: 0.5vh;
+    font-size: 0.9em;
+    transition: background-color 0.3s;
+    white-space: nowrap;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-logout {
+    background-color: var(--button-hover);
+    color: var(--text-color);
+}
+
+.btn-logout:hover {
+    background-color: var(--border-color);
+}
+
+.btn-login {
+    background-color: transparent;
+    color: red;
+    border: 1px solid red;
+}
+
+.btn-login:hover {
+    background-color: rgba(255, 0, 0, 0.1);
+}
+
+.btn-register, .upload-btn {
+    background-color: red;
+    color: white;
+}
+
+.btn-register:hover, .upload-btn:hover {
+    background-color: darkred;
 }

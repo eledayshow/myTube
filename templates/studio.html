@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Творческая студия - myTube</title>
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        })();
+    </script>
+    <link rel="stylesheet" href="/static/general.css">
+    <link rel="stylesheet" href="/static/studio.css">
+</head>
+<body>
+    <div class="header">
+        <a href="/">myTube</a>
+        <button class="theme-toggle" onclick="toggleTheme()">🌙</button>
+        <div class="header-right">
+            <a href="/upload" class="upload-btn">Загрузить видео</a>
+            <a href="/user/{{ user.id }}" class="user-info">{{ user.username }}</a>
+            <a href="/logout" class="btn-logout">Выйти</a>
+        </div>
+    </div>
+
+    <div class="studio-container">
+        <h1>Творческая студия</h1>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">📹</div>
+                <div class="stat-info">
+                    <div class="stat-value">{{ stats.video_count }}</div>
+                    <div class="stat-label">Видео</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">👁</div>
+                <div class="stat-info">
+                    <div class="stat-value">{{ stats.total_views }}</div>
+                    <div class="stat-label">Просмотров</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">👥</div>
+                <div class="stat-info">
+                    <div class="stat-value">{{ stats.subscriber_count }}</div>
+                    <div class="stat-label">Подписчиков</div>
+                </div>
+            </div>
+        </div>
+
+        <h2>Ваши видео</h2>
+
+        {% if videos %}
+        <div class="videos-table">
+            {% for video in videos %}
+            <div class="video-row" data-video-id="{{ video.id }}">
+                <div class="video-thumbnail">
+                    <img src="/static/previews/{{ video.id }}.png" alt="" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22160%22 height=%2290%22%3E%3Crect fill=%22%23ddd%22 width=%22160%22 height=%2290%22/%3E%3C/svg%3E'">
+                </div>
+                <div class="video-info">
+                    <h3>{{ video.name }}</h3>
+                    <p class="video-desc">{{ video.desc }}</p>
+                    <div class="video-stats">
+                        <span>👁 {{ video.views }} просмотров</span>
+                        <span>👍 {{ video.likes }}</span>
+                        <span>👎 {{ video.dislikes }}</span>
+                    </div>
+                </div>
+                <div class="video-actions">
+                    <button class="btn-edit" onclick="openEditModal({{ video.id }}, '{{ video.name }}', '{{ video.desc }}')">✏️ Изменить</button>
+                    <button class="btn-delete" onclick="deleteVideo({{ video.id }})">🗑️ Удалить</button>
+                    <a href="/{{ video.id }}" class="btn-view">👁 Смотреть</a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="no-videos">У вас пока нет загруженных видео</p>
+        {% endif %}
+    </div>
+
+    <!-- Модальное окно редактирования -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeEditModal()">&times;</span>
+            <h2>Редактировать видео</h2>
+            <form id="editForm">
+                <input type="hidden" id="editVideoId">
+                <div class="form-group">
+                    <label for="editName">Название</label>
+                    <input type="text" id="editName" required>
+                </div>
+                <div class="form-group">
+                    <label for="editDesc">Описание</label>
+                    <textarea id="editDesc" rows="5" required></textarea>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn-cancel" onclick="closeEditModal()">Отмена</button>
+                    <button type="submit" class="btn-save">Сохранить</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function openEditModal(videoId, name, desc) {
+            document.getElementById('editVideoId').value = videoId;
+            document.getElementById('editName').value = name;
+            document.getElementById('editDesc').value = desc;
+            document.getElementById('editModal').style.display = 'block';
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModal').style.display = 'none';
+        }
+
+        document.getElementById('editForm').onsubmit = async function(e) {
+            e.preventDefault();
+            
+            const videoId = document.getElementById('editVideoId').value;
+            const name = document.getElementById('editName').value;
+            const desc = document.getElementById('editDesc').value;
+
+            const formData = new FormData();
+            formData.append('name', name);
+            formData.append('desc', desc);
+
+            const response = await fetch(`/video/${videoId}/edit`, {
+                method: 'POST',
+                body: formData
+            });
+
+            if (response.ok) {
+                alert('Видео обновлено!');
+                location.reload();
+            } else {
+                const data = await response.json();
+                alert('Ошибка: ' + (data.error || 'Не удалось обновить видео'));
+            }
+        };
+
+        async function deleteVideo(videoId) {
+            if (!confirm('Вы уверены, что хотите удалить это видео?')) {
+                return;
+            }
+
+            const response = await fetch(`/video/${videoId}`, {
+                method: 'DELETE'
+            });
+
+            if (response.ok) {
+                document.querySelector(`[data-video-id="${videoId}"]`).remove();
+                
+                // Проверяем, остались ли видео
+                if (document.querySelectorAll('.video-row').length === 0) {
+                    location.reload();
+                }
+            } else {
+                const data = await response.json();
+                alert('Ошибка: ' + (data.error || 'Не удалось удалить видео'));
+            }
+        }
+
+        // Закрытие модального окна при клике вне его
+        window.onclick = function(event) {
+            const modal = document.getElementById('editModal');
+            if (event.target == modal) {
+                closeEditModal();
+            }
+        };
+
+        // Темная тема
+        function toggleTheme() {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            updateThemeIcon();
+        }
+
+        function updateThemeIcon() {
+            const theme = document.documentElement.getAttribute('data-theme');
+            const btn = document.querySelector('.theme-toggle');
+            btn.textContent = theme === 'dark' ? '☀️' : '🌙';
+        }
+
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        updateThemeIcon();
+    </script>
+</body>
+</html>

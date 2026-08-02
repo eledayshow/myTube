@@ -1,26 +1,78 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='general.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='index.css') }}">
+    <meta name="description" content="myTube - платформа для просмотра видео">
+    <title>myTube - Главная</title>
+    <script>
+        // Применяем тему до загрузки страницы
+        (function() {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        })();
+    </script>
+    <link rel="stylesheet" href="/static/general.css">
+    <link rel="stylesheet" href="/static/index.css">
 </head>
 <body>
     <div class="header">
         <a href="/">myTube</a>
-    </div>
-    <div class="videos">
-        {% for video in videos %}
-        <div class="video">
-            <a href="/{{ video.id|string }}">
-                <img src="{{ url_for('static', filename='previews/' + video.id|string + '.png') }}" alt="">
-                <h2 class="name">{{ video.name }}</h2>
-                <p class="author_name">{{ video.author_name }}</p>
-            </a>
+        <form class="search-form" action="/" method="get">
+            <input type="text" name="search" placeholder="Поиск видео..." value="{{ search }}">
+            <button type="submit">🔍</button>
+        </form>
+        <div class="header-right">
+            <button class="theme-toggle" onclick="toggleTheme()">🌙</button>
+            {% if user %}
+                <a href="/studio" class="upload-btn">Студия</a>
+                <a href="/upload" class="upload-btn">Загрузить видео</a>
+                <a href="/user/{{ user.id }}" class="user-info">{{ user.username }}</a>
+                <a href="/logout" class="btn-logout">Выйти</a>
+            {% else %}
+                <a href="/login" class="btn-login">Войти</a>
+                <a href="/register" class="btn-register">Регистрация</a>
+            {% endif %}
         </div>
-        {% endfor %}
     </div>
+    
+    <div class="videos">
+        {% if videos %}
+            {% for video in videos %}
+            <div class="video">
+                <a href="/{{ video.id }}">
+                    <img src="/static/previews/{{ video.id }}.png" alt="" onerror="this.style.display='none'">
+                    <h2 class="name">{{ video.name }}</h2>
+                    <p class="author_name">{{ video.author_name }}</p>
+                    <p class="views">👁 {{ video.views }} просмотров</p>
+                </a>
+            </div>
+            {% endfor %}
+        {% else %}
+            <p class="no-results">Видео не найдено</p>
+        {% endif %}
+    </div>
+
+    <script>
+        // Темная тема
+        function toggleTheme() {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            updateThemeIcon();
+        }
+
+        function updateThemeIcon() {
+            const theme = document.documentElement.getAttribute('data-theme');
+            const btn = document.querySelector('.theme-toggle');
+            btn.textContent = theme === 'dark' ? '☀️' : '🌙';
+        }
+
+        // Применяем сохраненную тему
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        updateThemeIcon();
+    </script>
 </body>
 </html>

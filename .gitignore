@@ -1,3 +1,17 @@
 __pycache__
 venv
 *.db
+.env
+*.pyc
+*.pyo
+*.log
+.DS_Store
+instance/
+*.vscode
+*.webm
+*.mp4 
+*.m3u8
+*.ts
+*.png
+*.jpg
+.kiro/

@@ -1,0 +1,207 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    font-family: "Roboto", sans-serif;
+    box-sizing: border-box;
+}
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+}
+
+.upload-container {
+    max-width: 700px;
+    margin: 5vh auto;
+    padding: 4vh;
+    background-color: var(--card-bg);
+    border-radius: 1vh;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.upload-container h1 {
+    margin-bottom: 3vh;
+    color: var(--text-color);
+    font-size: 2em;
+}
+
+.form-group {
+    margin-bottom: 2.5vh;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 1vh;
+    font-weight: 500;
+    color: var(--text-color);
+    font-size: 1.1em;
+}
+
+.form-group input[type="text"],
+.form-group textarea {
+    width: 100%;
+    padding: 1.5vh;
+    border: 1px solid var(--border-color);
+    border-radius: 0.5vh;
+    font-size: 1em;
+    transition: border-color 0.3s;
+    background-color: var(--input-bg);
+    color: var(--text-color);
+}
+
+.form-group input[type="text"]:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: red;
+}
+
+.form-group textarea {
+    resize: vertical;
+    min-height: 100px;
+}
+
+.file-input-wrapper {
+    position: relative;
+    border: 2px dashed var(--border-color);
+    border-radius: 1vh;
+    padding: 4vh;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s;
+    background-color: var(--input-bg);
+}
+
+.file-input-wrapper:hover,
+.file-input-wrapper.drag-over {
+    border-color: red;
+    background-color: rgba(255, 0, 0, 0.05);
+}
+
+.file-input-wrapper input[type="file"] {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    opacity: 0;
+    cursor: pointer;
+}
+
+.file-input-display {
+    pointer-events: none;
+}
+
+.file-input-display svg {
+    margin-bottom: 1vh;
+}
+
+.file-name {
+    font-size: 1.1em;
+    color: var(--text-color);
+    margin-bottom: 0.5vh;
+}
+
+.file-info {
+    font-size: 0.9em;
+    color: #666;
+}
+
+.upload-progress {
+    margin: 2vh 0;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 8px;
+    background-color: var(--border-color);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 1vh;
+}
+
+.progress-fill {
+    height: 100%;
+    background-color: red;
+    width: 0%;
+    transition: width 0.3s ease;
+}
+
+.progress-text {
+    text-align: center;
+    color: #666;
+    font-size: 0.9em;
+}
+
+.upload-status {
+    padding: 1.5vh;
+    border-radius: 0.5vh;
+    margin: 2vh 0;
+    text-align: center;
+    font-weight: 500;
+}
+
+.upload-status.success {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.upload-status.error {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+.form-actions {
+    display: flex;
+    gap: 2vh;
+    margin-top: 3vh;
+}
+
+.btn-cancel,
+.btn-submit {
+    flex: 1;
+    padding: 1.5vh 3vh;
+    border: none;
+    border-radius: 0.5vh;
+    font-size: 1em;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-weight: 500;
+}
+
+.btn-cancel {
+    background-color: var(--button-hover);
+    color: var(--text-color);
+}
+
+.btn-cancel:hover {
+    background-color: var(--border-color);
+}
+
+.btn-submit {
+    background-color: red;
+    color: white;
+}
+
+.btn-submit:hover:not(:disabled) {
+    background-color: darkred;
+}
+
+.btn-submit:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+    .upload-container {
+        margin: 2vh;
+        padding: 2vh;
+    }
+
+    .form-actions {
+        flex-direction: column;
+    }
+}

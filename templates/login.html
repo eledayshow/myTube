@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Вход - myTube</title>
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        })();
+    </script>
+    <link rel="stylesheet" href="/static/general.css">
+    <link rel="stylesheet" href="/static/auth.css">
+</head>
+<body>
+    <div class="header">
+        <a href="/">myTube</a>
+        <button class="theme-toggle" onclick="toggleTheme()">🌙</button>
+    </div>
+    
+    <div class="auth-container">
+        <h1>Вход</h1>
+        
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="username">Имя пользователя</label>
+                <input type="text" id="username" name="username" placeholder="Введите имя пользователя" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="password">Пароль</label>
+                <input type="password" id="password" name="password" placeholder="Введите пароль" required>
+            </div>
+            
+            <div id="authStatus" class="auth-status"></div>
+            
+            <button type="submit" class="btn-submit">Войти</button>
+        </form>
+        
+        <div class="auth-links">
+            Нет аккаунта? <a href="/register">Зарегистрироваться</a>
+        </div>
+    </div>
+
+    <script>
+        const loginForm = document.getElementById('loginForm');
+        const authStatus = document.getElementById('authStatus');
+        const submitBtn = document.querySelector('.btn-submit');
+
+        loginForm.onsubmit = async function(e) {
+            e.preventDefault();
+            
+            authStatus.textContent = '';
+            authStatus.className = 'auth-status';
+            submitBtn.disabled = true;
+            
+            const formData = new FormData(this);
+            
+            try {
+                const response = await fetch('/login', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    window.location.href = result.redirect || '/';
+                } else {
+                    authStatus.textContent = '✗ ' + (result.error || 'Ошибка входа');
+                    authStatus.className = 'auth-status error';
+                    submitBtn.disabled = false;
+                }
+            } catch (error) {
+                authStatus.textContent = '✗ Ошибка соединения: ' + error;
+                authStatus.className = 'auth-status error';
+                submitBtn.disabled = false;
+            }
+        };
+
+        function toggleTheme() {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            updateThemeIcon();
+        }
+
+        function updateThemeIcon() {
+            const theme = document.documentElement.getAttribute('data-theme');
+            const btn = document.querySelector('.theme-toggle');
+            btn.textContent = theme === 'dark' ? '☀️' : '🌙';
+        }
+
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        updateThemeIcon();
+    </script>
+</body>
+</html>

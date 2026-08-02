@@ -4,59 +4,228 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>myTube</title>
-
-    <link rel="stylesheet" href="{{ url_for('static', filename='video_page.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='general.css') }}">
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        })();
+    </script>
+    <link rel="stylesheet" href="/static/video_page.css">
+    <link rel="stylesheet" href="/static/general.css">
 </head>
 <body>
     <div class="header">
         <a href="/">myTube</a>
+        <button class="theme-toggle" onclick="toggleTheme()">🌙</button>
+        <div class="header-right">
+            {% if user %}
+                <a href="/user/{{ user.id }}" class="user-info">{{ user.username }}</a>
+                <a href="/logout" class="btn-logout">Выйти</a>
+            {% else %}
+                <a href="/login" class="btn-login">Войти</a>
+            {% endif %}
+        </div>
     </div>
     <div class="video_block">
         <video controls>
-            <source src="{{ url_for('static', filename='videos/' + video.id|string + '.mp4') }}" type="video/mp4">
+            {% if video.video_format %}
+            <source src="/static/videos/{{ video.id }}.{{ video.video_format }}" type="video/{{ video.video_format }}">
+            {% else %}
+            <source src="/static/videos/{{ video.id }}.webm" type="video/webm">
+            <source src="/static/videos/{{ video.id }}.mp4" type="video/mp4">
+            {% endif %}
         </video>
 
         <div class="actions">
             <div class="like">
-                <button class="like_btn" id="{{ video.id }}">
+                <button class="like_btn {% if user_reaction == 'like' %}active{% endif %}" id="{{ video.id }}">
                     <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#5f6368"><path d="M840-640q32 0 56 24t24 56v80q0 7-2 15t-4 15L794-168q-9 20-30 34t-44 14H280v-520l240-238q15-15 35.5-17.5T595-888q19 10 28 28t4 37l-45 183h258Zm-480 34v406h360l120-280v-80H480l54-220-174 174ZM160-120q-33 0-56.5-23.5T80-200v-360q0-33 23.5-56.5T160-640h120v80H160v360h120v80H160Zm200-80v-406 406Z"/></svg>
                     <p>{{ video.likes }}</p>
                 </button>
             </div>
             <div class="dislike">
-                <button class="dislike_btn" id="{{ video.id }}">
+                <button class="dislike_btn {% if user_reaction == 'dislike' %}active{% endif %}" id="{{ video.id }}">
                     <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#5f6368"><path d="M120-320q-32 0-56-24t-24-56v-80q0-7 2-15t4-15l120-282q9-20 30-34t44-14h440v520L440-82q-15 15-35.5 17.5T365-72q-19-10-28-28t-4-37l45-183H120Zm480-34v-406H240L120-480v80h360l-54 220 174-174Zm200-486q33 0 56.5 23.5T880-760v360q0 33-23.5 56.5T800-320H680v-80h120v-360H680v-80h120Zm-200 80v406-406Z"/></svg>
                     <p>{{ video.dislikes }}</p>
                 </button>
             </div>
+            <span class="views">👁 {{ video.views }} просмотров</span>
         </div>
 
         <h1 class="name">{{ video.name }}</h1>
         <p class="desc">{{ video.desc }}</p>
-        <p class="author_name">{{ video.author_name }}</p>
+        <p class="author_name"><a href="/user/{{ video.author_id }}">{{ video.author_name }}</a></p>
+
+        <div class="comments-section">
+            <h2>Комментарии ({{ comments|length }})</h2>
+            
+            {% if user %}
+            <form class="comment-form" onsubmit="addComment(event)">
+                <textarea id="comment-text" placeholder="Добавьте комментарий..." required></textarea>
+                <button type="submit">Отправить</button>
+            </form>
+            {% else %}
+            <p class="login-prompt">Войдите, чтобы оставить комментарий</p>
+            {% endif %}
+
+            <div class="comments-list">
+                {% for comment in comments %}
+                <div class="comment" data-comment-id="{{ comment.id }}">
+                    <div class="comment-header">
+                        <a href="/user/{{ comment.user_id }}" class="comment-author">{{ comment.username }}</a>
+                        <span class="comment-date">{{ comment.created_at }}</span>
+                        {% if user and user.id == comment.user_id %}
+                        <button class="delete-comment" onclick="deleteComment({{ comment.id }})">🗑️</button>
+                        {% endif %}
+                    </div>
+                    <p class="comment-text">{{ comment.text }}</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
     </div>
 
     <script>
-        like_btn = document.querySelector('.like_btn')
-        like_p = document.querySelector('.like_btn p')
+        let isLikeProcessing = false;
+        let isDislikeProcessing = false;
+
+        const like_btn = document.querySelector('.like_btn');
+        const like_p = document.querySelector('.like_btn p');
+        const dislike_btn = document.querySelector('.dislike_btn');
+        const dislike_p = document.querySelector('.dislike_btn p');
+        
         like_btn.onclick = async function(event) {
-            await fetch('/' + like_btn.id.toString() + '/like', {
-                method: 'POST'
-            })
-            like_p.innerText = Number(like_p.innerText) + 1
+            if (isLikeProcessing) return;
+            isLikeProcessing = true;
+            
+            try {
+                const response = await fetch('/' + like_btn.id.toString() + '/like', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    const wasActive = like_btn.classList.contains('active');
+                    const dislikeWasActive = dislike_btn.classList.contains('active');
+                    
+                    if (wasActive) {
+                        like_btn.classList.remove('active');
+                        like_p.innerText = Number(like_p.innerText) - 1;
+                    } else if (dislikeWasActive) {
+                        dislike_btn.classList.remove('active');
+                        like_btn.classList.add('active');
+                        dislike_p.innerText = Number(dislike_p.innerText) - 1;
+                        like_p.innerText = Number(like_p.innerText) + 1;
+                    } else {
+                        like_btn.classList.add('active');
+                        like_p.innerText = Number(like_p.innerText) + 1;
+                    }
+                } else if (response.status === 401) {
+                    alert('Необходима авторизация');
+                    window.location.href = '/login';
+                }
+            } catch (error) {
+                console.error('Ошибка:', error);
+            } finally {
+                setTimeout(() => { isLikeProcessing = false; }, 300);
+            }
+        };
+        
+        dislike_btn.onclick = async function(event) {
+            if (isDislikeProcessing) return;
+            isDislikeProcessing = true;
+            
+            try {
+                const response = await fetch('/' + dislike_btn.id.toString() + '/dislike', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    const wasActive = dislike_btn.classList.contains('active');
+                    const likeWasActive = like_btn.classList.contains('active');
+                    
+                    if (wasActive) {
+                        dislike_btn.classList.remove('active');
+                        dislike_p.innerText = Number(dislike_p.innerText) - 1;
+                    } else if (likeWasActive) {
+                        like_btn.classList.remove('active');
+                        dislike_btn.classList.add('active');
+                        like_p.innerText = Number(like_p.innerText) - 1;
+                        dislike_p.innerText = Number(dislike_p.innerText) + 1;
+                    } else {
+                        dislike_btn.classList.add('active');
+                        dislike_p.innerText = Number(dislike_p.innerText) + 1;
+                    }
+                } else if (response.status === 401) {
+                    alert('Необходима авторизация');
+                    window.location.href = '/login';
+                }
+            } catch (error) {
+                console.error('Ошибка:', error);
+            } finally {
+                setTimeout(() => { isDislikeProcessing = false; }, 300);
+            }
+        };
+
+        // Комментарии
+        async function addComment(event) {
+            event.preventDefault();
+            const text = document.getElementById('comment-text').value;
+            const videoId = like_btn.id;
+
+            const formData = new FormData();
+            formData.append('text', text);
+
+            const response = await fetch(`/${videoId}/comment`, {
+                method: 'POST',
+                body: formData
+            });
+
+            if (response.ok) {
+                location.reload();
+            } else {
+                const data = await response.json();
+                alert(data.error || 'Ошибка при добавлении комментария');
+            }
         }
 
-        dislike_btn = document.querySelector('.dislike_btn')
-        dislike_p = document.querySelector('.dislike_btn p')
-        dislike_btn.onclick = async function(event) {
-            console.log('/' + dislike_btn.id.toString() + '/dislike');
-            
-            await fetch('/' + dislike_btn.id.toString() + '/dislike', {
-                method: 'POST'
-            })
-            dislike_p.innerText = Number(dislike_p.innerText) + 1
+        async function deleteComment(commentId) {
+            if (!confirm('Удалить комментарий?')) return;
+
+            const response = await fetch(`/comment/${commentId}`, {
+                method: 'DELETE'
+            });
+
+            if (response.ok) {
+                document.querySelector(`[data-comment-id="${commentId}"]`).remove();
+            } else {
+                alert('Ошибка при удалении комментария');
+            }
         }
+
+        // Темная тема
+        function toggleTheme() {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            updateThemeIcon();
+        }
+
+        function updateThemeIcon() {
+            const theme = document.documentElement.getAttribute('data-theme');
+            const btn = document.querySelector('.theme-toggle');
+            btn.textContent = theme === 'dark' ? '☀️' : '🌙';
+        }
+
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        updateThemeIcon();
     </script>
 </body>
 </html>

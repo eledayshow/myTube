@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ profile_user.username }} - myTube</title>
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        })();
+    </script>
+    <link rel="stylesheet" href="/static/general.css">
+    <link rel="stylesheet" href="/static/profile.css">
+</head>
+<body>
+    <div class="header">
+        <a href="/">myTube</a>
+        <button class="theme-toggle" onclick="toggleTheme()">🌙</button>
+        <div class="header-right">
+            {% if user %}
+                <a href="/user/{{ user.id }}" class="user-info">{{ user.username }}</a>
+                <a href="/logout" class="btn-logout">Выйти</a>
+            {% else %}
+                <a href="/login" class="btn-login">Войти</a>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="profile-container">
+        <div class="profile-header">
+            <div class="profile-info">
+                <h1>{{ profile_user.username }}</h1>
+                <p class="join-date">Присоединился: {{ profile_user.created_at[:10] }}</p>
+            </div>
+            {% if user and not is_own_profile %}
+            <button class="subscribe-btn {% if is_subscribed %}subscribed{% endif %}" onclick="toggleSubscribe()">
+                {{ 'Отписаться' if is_subscribed else 'Подписаться' }}
+            </button>
+            {% endif %}
+        </div>
+
+        <div class="profile-stats">
+            <div class="stat">
+                <span class="stat-value">{{ stats.video_count }}</span>
+                <span class="stat-label">видео</span>
+            </div>
+            <div class="stat">
+                <span class="stat-value">{{ stats.total_views }}</span>
+                <span class="stat-label">просмотров</span>
+            </div>
+            <div class="stat">
+                <span class="stat-value">{{ stats.subscriber_count }}</span>
+                <span class="stat-label">подписчиков</span>
+            </div>
+            <div class="stat">
+                <span class="stat-value">{{ stats.subscription_count }}</span>
+                <span class="stat-label">подписок</span>
+            </div>
+        </div>
+
+        <h2>Видео</h2>
+        <div class="videos">
+            {% if videos %}
+                {% for video in videos %}
+                <div class="video">
+                    <a href="/{{ video.id }}">
+                        <img src="/static/previews/{{ video.id }}.png" alt="" onerror="this.style.display='none'">
+                        <h3 class="name">{{ video.name }}</h3>
+                        <p class="views">👁 {{ video.views }} просмотров</p>
+                    </a>
+                </div>
+                {% endfor %}
+            {% else %}
+                <p class="no-videos">Пока нет загруженных видео</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <script>
+        async function toggleSubscribe() {
+            const btn = document.querySelector('.subscribe-btn');
+            const isSubscribed = btn.classList.contains('subscribed');
+            const action = isSubscribed ? 'unsubscribe' : 'subscribe';
+
+            const response = await fetch(`/user/{{ profile_user.id }}/${action}`, {
+                method: 'POST'
+            });
+
+            if (response.ok) {
+                btn.classList.toggle('subscribed');
+                btn.textContent = isSubscribed ? 'Подписаться' : 'Отписаться';
+                
+                // Обновляем счетчик подписчиков
+                const subscriberCount = document.querySelector('.stat-value');
+                const currentCount = parseInt(subscriberCount.textContent);
+                subscriberCount.textContent = isSubscribed ? currentCount - 1 : currentCount + 1;
+            } else if (response.status === 401) {
+                alert('Необходима авторизация');
+                window.location.href = '/login';
+            }
+        }
+
+        // Темная тема
+        function toggleTheme() {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            updateThemeIcon();
+        }
+
+        function updateThemeIcon() {
+            const theme = document.documentElement.getAttribute('data-theme');
+            const btn = document.querySelector('.theme-toggle');
+            btn.textContent = theme === 'dark' ? '☀️' : '🌙';
+        }
+
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        updateThemeIcon();
+    </script>
+</body>
+</html>

@@ -1,0 +1,121 @@
+body {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+}
+
+.profile-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 4vh 3vh;
+}
+
+.profile-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 3vh;
+    padding-bottom: 2vh;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.profile-info h1 {
+    font-size: 2em;
+    margin-bottom: 0.5vh;
+}
+
+.join-date {
+    color: #9e9e9e;
+    font-size: 0.9em;
+}
+
+.subscribe-btn {
+    padding: 1vh 3vh;
+    background-color: red;
+    color: white;
+    border: none;
+    border-radius: 2vh;
+    cursor: pointer;
+    font-size: 1em;
+    font-weight: 500;
+    transition: background-color 0.3s;
+}
+
+.subscribe-btn:hover {
+    background-color: darkred;
+}
+
+.subscribe-btn.subscribed {
+    background-color: var(--card-bg);
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+}
+
+.subscribe-btn.subscribed:hover {
+    background-color: var(--button-hover);
+}
+
+.profile-stats {
+    display: flex;
+    gap: 4vh;
+    margin-bottom: 4vh;
+}
+
+.stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.stat-value {
+    font-size: 1.8em;
+    font-weight: 700;
+    color: var(--text-color);
+}
+
+.stat-label {
+    color: #9e9e9e;
+    font-size: 0.9em;
+}
+
+.profile-container h2 {
+    margin-bottom: 2vh;
+    font-size: 1.5em;
+}
+
+.videos {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2vh;
+}
+
+.video {
+    width: calc(25% - 1.5vh);
+}
+
+.video a {
+    text-decoration: none;
+    color: var(--text-color);
+}
+
+.video img {
+    width: 100%;
+    border-radius: 1vh;
+    background-color: var(--card-bg);
+}
+
+.video h3 {
+    margin-top: 0.5vh;
+    font-size: 1em;
+}
+
+.video .views {
+    color: #9e9e9e;
+    font-size: 0.85em;
+    margin-top: 0.3vh;
+}
+
+.no-videos {
+    color: #9e9e9e;
+    font-style: italic;
+    padding: 3vh 0;
+}

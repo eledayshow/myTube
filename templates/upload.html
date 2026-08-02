@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Загрузить видео - myTube</title>
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        })();
+    </script>
+    <link rel="stylesheet" href="/static/general.css">
+    <link rel="stylesheet" href="/static/upload.css">
+</head>
+<body>
+    <div class="header">
+        <a href="/">myTube</a>
+        <button class="theme-toggle" onclick="toggleTheme()">🌙</button>
+        <div class="header-right">
+            {% if user %}
+                <a href="/user/{{ user.id }}" class="user-info">{{ user.username }}</a>
+                <a href="/logout" class="btn-logout">Выйти</a>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="upload-container">
+        <h1>Загрузить видео</h1>
+        
+        <form id="uploadForm" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="name">Название видео</label>
+                <input type="text" id="name" name="name" placeholder="Введите название видео" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="desc">Описание</label>
+                <textarea id="desc" name="desc" placeholder="Расскажите о вашем видео" rows="5" required></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="video">Выберите видео</label>
+                <div class="file-input-wrapper">
+                    <input type="file" id="video" name="video" accept="video/*" required>
+                    <div class="file-input-display">
+                        <svg xmlns="http://www.w3.org/2000/svg" height="48px" viewBox="0 -960 960 960" width="48px" fill="#5f6368">
+                            <path d="M260-160q-91 0-155.5-63T40-377q0-78 47-139t123-78q25-92 100-149t170-57q117 0 198.5 81.5T760-520q69 8 114.5 59.5T920-340q0 75-52.5 127.5T740-160H520q-33 0-56.5-23.5T440-240v-206l-64 62-56-56 160-160 160 160-56 56-64-62v206h220q42 0 71-29t29-71q0-42-29-71t-71-29h-60v-80q0-83-58.5-141.5T480-720q-83 0-141.5 58.5T280-520h-20q-58 0-99 41t-41 99q0 58 41 99t99 41h100v80H260Zm220-280Z"/>
+                        </svg>
+                        <p class="file-name">Нажмите или перетащите файл</p>
+                        <p class="file-info">Поддерживаются: mp4, webm, avi, mov, mkv</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="uploadProgress" class="upload-progress" style="display: none;">
+                <div class="progress-bar">
+                    <div class="progress-fill"></div>
+                </div>
+                <p class="progress-text">Загрузка и конвертация...</p>
+            </div>
+            
+            <div id="uploadStatus" class="upload-status"></div>
+            
+            <div class="form-actions">
+                <button type="button" class="btn-cancel" onclick="window.location.href='/'">Отмена</button>
+                <button type="submit" class="btn-submit">Загрузить видео</button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        const fileInput = document.getElementById('video');
+        const fileName = document.querySelector('.file-name');
+        const fileInfo = document.querySelector('.file-info');
+        const uploadForm = document.getElementById('uploadForm');
+        const uploadProgress = document.getElementById('uploadProgress');
+        const uploadStatus = document.getElementById('uploadStatus');
+        const submitBtn = document.querySelector('.btn-submit');
+
+        // Обработка выбора файла
+        fileInput.addEventListener('change', function(e) {
+            if (this.files && this.files[0]) {
+                const file = this.files[0];
+                fileName.textContent = file.name;
+                const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
+                fileInfo.textContent = `Размер: ${sizeMB} МБ`;
+            }
+        });
+
+        // Drag and drop
+        const fileInputWrapper = document.querySelector('.file-input-wrapper');
+        
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            fileInputWrapper.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            fileInputWrapper.addEventListener(eventName, () => {
+                fileInputWrapper.classList.add('drag-over');
+            }, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            fileInputWrapper.addEventListener(eventName, () => {
+                fileInputWrapper.classList.remove('drag-over');
+            }, false);
+        });
+
+        fileInputWrapper.addEventListener('drop', function(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            fileInput.files = files;
+            
+            if (files && files[0]) {
+                const file = files[0];
+                fileName.textContent = file.name;
+                const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
+                fileInfo.textContent = `Размер: ${sizeMB} МБ`;
+            }
+        });
+
+        // Отправка формы
+        uploadForm.onsubmit = async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            
+            uploadProgress.style.display = 'block';
+            uploadStatus.textContent = '';
+            uploadStatus.className = 'upload-status';
+            submitBtn.disabled = true;
+            
+            try {
+                const response = await fetch('/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                uploadProgress.style.display = 'none';
+                
+                if (response.ok) {
+                    uploadStatus.textContent = '✓ Видео успешно загружено!';
+                    uploadStatus.className = 'upload-status success';
+                    setTimeout(() => {
+                        window.location.href = '/' + result.video_id;
+                    }, 1500);
+                } else {
+                    uploadStatus.textContent = '✗ Ошибка: ' + (result.error || result.detail || 'Неизвестная ошибка');
+                    uploadStatus.className = 'upload-status error';
+                    submitBtn.disabled = false;
+                }
+            } catch (error) {
+                uploadProgress.style.display = 'none';
+                uploadStatus.textContent = '✗ Ошибка загрузки: ' + error.message;
+                uploadStatus.className = 'upload-status error';
+                submitBtn.disabled = false;
+            }
+        };
+
+        // Темная тема
+        function toggleTheme() {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            updateThemeIcon();
+        }
+
+        function updateThemeIcon() {
+            const theme = document.documentElement.getAttribute('data-theme');
+            const btn = document.querySelector('.theme-toggle');
+            btn.textContent = theme === 'dark' ? '☀️' : '🌙';
+        }
+
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        updateThemeIcon();
+    </script>
+</body>
+</html>

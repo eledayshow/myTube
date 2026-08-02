@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Регистрация - myTube</title>
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        })();
+    </script>
+    <link rel="stylesheet" href="/static/general.css">
+    <link rel="stylesheet" href="/static/auth.css">
+</head>
+<body>
+    <div class="header">
+        <a href="/">myTube</a>
+        <button class="theme-toggle" onclick="toggleTheme()">🌙</button>
+    </div>
+    
+    <div class="auth-container">
+        <h1>Регистрация</h1>
+        
+        <form id="registerForm">
+            <div class="form-group">
+                <label for="username">Имя пользователя</label>
+                <input type="text" id="username" name="username" placeholder="Введите имя пользователя" required minlength="3">
+            </div>
+            
+            <div class="form-group">
+                <label for="password">Пароль</label>
+                <input type="password" id="password" name="password" placeholder="Введите пароль" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="password_confirm">Подтвердите пароль</label>
+                <input type="password" id="password_confirm" name="password_confirm" placeholder="Повторите пароль" required>
+            </div>
+            
+            <div class="form-group captcha-group">
+                <label>Введите результат:</label>
+                <div class="captcha-display">
+                    <canvas id="captchaCanvas" width="200" height="60"></canvas>
+                    <button type="button" class="captcha-refresh" onclick="generateCaptcha()">🔄</button>
+                </div>
+                <input type="text" id="captcha" name="captcha" placeholder="Введите число" required>
+            </div>
+            
+            <div id="authStatus" class="auth-status"></div>
+            
+            <button type="submit" class="btn-submit">Зарегистрироваться</button>
+        </form>
+        
+        <div class="auth-links">
+            Уже есть аккаунт? <a href="/login">Войти</a>
+        </div>
+    </div>
+
+    <script>
+        let captchaAnswer = 0;
+        
+        function generateCaptcha() {
+            const canvas = document.getElementById('captchaCanvas');
+            const ctx = canvas.getContext('2d');
+            
+            // Очищаем canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Фон
+            ctx.fillStyle = '#f0f0f0';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Генерируем простой пример
+            const num1 = Math.floor(Math.random() * 10) + 1;
+            const num2 = Math.floor(Math.random() * 10) + 1;
+            captchaAnswer = num1 + num2;
+            
+            // Добавляем шум (линии)
+            for (let i = 0; i < 5; i++) {
+                ctx.strokeStyle = `rgba(${Math.random() * 255}, ${Math.random() * 255}, ${Math.random() * 255}, 0.3)`;
+                ctx.beginPath();
+                ctx.moveTo(Math.random() * canvas.width, Math.random() * canvas.height);
+                ctx.lineTo(Math.random() * canvas.width, Math.random() * canvas.height);
+                ctx.stroke();
+            }
+            
+            // Рисуем текст
+            ctx.font = 'bold 30px Arial';
+            ctx.fillStyle = '#333';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            
+            const text = `${num1} + ${num2} = ?`;
+            ctx.fillText(text, canvas.width / 2, canvas.height / 2);
+        }
+        
+        // Генерируем капчу при загрузке
+        generateCaptcha();
+        
+        const registerForm = document.getElementById('registerForm');
+        const authStatus = document.getElementById('authStatus');
+        const submitBtn = document.querySelector('.btn-submit');
+
+        registerForm.onsubmit = async function(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const passwordConfirm = document.getElementById('password_confirm').value;
+            const captcha = document.getElementById('captcha').value;
+            
+            if (password !== passwordConfirm) {
+                authStatus.textContent = '✗ Пароли не совпадают';
+                authStatus.className = 'auth-status error';
+                return;
+            }
+            
+            if (parseInt(captcha) !== captchaAnswer) {
+                authStatus.textContent = '✗ Неверная капча';
+                authStatus.className = 'auth-status error';
+                generateCaptcha();
+                document.getElementById('captcha').value = '';
+                return;
+            }
+            
+            authStatus.textContent = '';
+            authStatus.className = 'auth-status';
+            submitBtn.disabled = true;
+            
+            const formData = new FormData();
+            formData.append('username', username);
+            formData.append('password', password);
+            
+            try {
+                const response = await fetch('/register', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    window.location.href = result.redirect || '/';
+                } else {
+                    authStatus.textContent = '✗ ' + (result.error || 'Ошибка регистрации');
+                    authStatus.className = 'auth-status error';
+                    submitBtn.disabled = false;
+                    generateCaptcha();
+                    document.getElementById('captcha').value = '';
+                }
+            } catch (error) {
+                authStatus.textContent = '✗ Ошибка соединения: ' + error;
+                authStatus.className = 'auth-status error';
+                submitBtn.disabled = false;
+            }
+        };
+
+        // Темная тема
+        function toggleTheme() {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            updateThemeIcon();
+        }
+
+        function updateThemeIcon() {
+            const theme = document.documentElement.getAttribute('data-theme');
+            const btn = document.querySelector('.theme-toggle');
+            btn.textContent = theme === 'dark' ? '☀️' : '🌙';
+        }
+
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        updateThemeIcon();
+    </script>
+</body>
+</html>
